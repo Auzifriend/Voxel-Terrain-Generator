@@ -1,57 +1,28 @@
-#===============================================================================
-#= Data Layer (handles block data conversion to and from the text file)       =#
-#===============================================================================
+#==============================================================================#
+#=  Data Layer                                                                =#
+#==============================================================================#
 
-#ASCII-conversions--------------------------------------------------------------
+#file-initialisation------------------------------------------------------------
 
-ASCIItable = """ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"""
+def initialiseWorld(length, width, height, file):
 
-def numToASCII(number):
-    digits = ""
-    while number:
-        digits += ASCIItable[number%95]
-        number //= 95
-    return digits[::-1]
+    if not(0 < length <= 64) or not(0 < width <= 64) or not(0 < height <= 32):  #user world size parameters  validation
+        return -1                                                               #returns -1 if not valid -> main file will  do something with this
 
-def ASCIItoNum(digits):
-    number = 0
-    for i in range(4):
-        Index = ASCIItable.index(digits[i])
-        number = number * 95 + Index
-    return number
+    line = "N" * length * width * height                                        #calculates how many blocks in world,  uses "N" as 'no texture'
+    file.write(line)                                                            #writes all blocks to the world file
 
-#text-file-interactions---------------------------------------------------------
+#changing-block-texture-in-file-------------------------------------------------
 
-def giveBlock(x,y,z, texture):
-    binX = format(x, '08b')
-    binY = format(y, '06b')
-    binZ = format(z, '08b')
-    binTexture = format(texture, '03b')
-
-    bigBin = "1"+binX+binY+binZ+binTexture
-    bigInt = int(bigBin, 2)
-
-    return numToASCII(bigInt)
-
-def getBlocks(file):
-    length = len(file.readline())
-    file.seek(0)
-
-    for i in range(0, length, 5):
-        block = file.read(5)
-
-        bigInt = ASCIItoNum(block)
-        bigBin = format(bigInt, '026b')
-
-        decX = int(bigBin[1:9], 2)
-        decY = int(bigBin[9:15], 2)
-        decZ = int(bigBin[15:23], 2)
-        decTexture = int(bigBin[23:], 2)
-
-        print(decX, decY, decZ, decTexture)
+def changeBlock(x,y,z, texture, file):
+    index = x + 5*y + 25*z                                                      #calculates index in world file based on  xyz input
+    file.seek(index)                                                            #sets file pointer to the index
+    file.write(texture)                                                         #writes the new texture character to the index -> different textures represented with different characters
 
 #main---------------------------------------------------------------------------
 
-with open("World.txt", "r+") as world:
-    #world.write(giveBlock(67,63,42,5))
-    getBlocks(world)
+##for tests, will  be different after presentation and logic layers made
+
+with open("World.txt", "w") as world:
+    initialiseWorld(5,5,5,world)
+    changeBlock(2,2,1,"6",world)
